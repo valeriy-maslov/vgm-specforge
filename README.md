@@ -57,6 +57,18 @@ Initial focus:
 - Agent integration patterns for OpenCode, Codex, and Claude
 - Foundations for change tracking and decision documentation
 
+## Architecture and Planning Docs
+
+- `ARCHITECTURE.md` - high-level system architecture
+- `IMPLEMENTATION_ARCHITECTURE_SPEC.md` - package/component blueprint and API contracts
+- `IMPLEMENTATION_PLAN.md` - granular parallel implementation plan with coding and review subagent statements
+- `SPECFORGE_MVP_EVENT_STORMING.md` - event-storming decisions and workflow rules
+- `specs/index.md` - ordered implementation specs
+
+Local agent guidance:
+
+- `AGENTS.md` is used as a local working guide and is currently gitignored by design.
+
 ## Contributing
 
 Contributions and feedback are welcome. If this vision resonates with you, open an issue or start a discussion.
