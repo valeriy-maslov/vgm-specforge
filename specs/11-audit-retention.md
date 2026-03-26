@@ -29,7 +29,7 @@ As a software engineer, I want different retention rules for completed versus ca
 
 Acceptance Criteria:
 
-- Given workflow completes, when history is preserved, then per-run artifacts are removed by default unless user requested retention.
+- Given workflow completes, when history is preserved, then retention decision metadata is recorded and default policy is non-retention of per-run artifacts.
 - Given workflow is cancelled, when finalizing cancellation, then only minimal cancellation metadata is kept.
 
 ## Functional Requirements
@@ -41,6 +41,6 @@ Acceptance Criteria:
 - FR-AR-005: PR-failure-specific audit event shall not be required in MVP.
 - FR-AR-006: Cancellation shall be terminal.
 - FR-AR-007: Cancellation retention shall keep only minimal metadata: `branch_name`, `work_type`, `initiator`, `created_at`, `cancelled_at`, `cancellation_reason`, `last_state`, `affected_section_ids`, `branch_head_sha`, and `branch_exists`.
-- FR-AR-008: After workflow completion, per-run artifacts shall be removed by default after history is preserved.
-- FR-AR-009: User may explicitly request to keep per-run artifacts after completion.
-- FR-AR-010: After cancellation, per-run artifacts shall not be retained.
+- FR-AR-008: After workflow completion, SpecForge shall record completion-retention decision metadata; default policy is non-retention of per-run artifacts.
+- FR-AR-009: Explicit user-requested retention of per-run artifacts is a post-MVP extension; MVP keeps completion retention deterministic via policy defaults.
+- FR-AR-010: After cancellation, run retention shall remain minimal metadata only; additional per-run artifact retention workflow is out of MVP scope.

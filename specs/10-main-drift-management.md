@@ -40,7 +40,19 @@ Acceptance Criteria:
 - FR-DR-004: Drift strategy shall be overridable by prompt or project rules under global precedence.
 - FR-DR-005: After drift integration, SpecForge shall run impact analysis against current spec, plan, and implementation context.
 - FR-DR-006: SpecForge shall require user confirmation on how to proceed after impact analysis.
-- FR-DR-007: If misalignment is detected after drift analysis, workflow shall transition to `rework`.
+- FR-DR-007: If misalignment is detected after drift analysis, workflow shall enter rework handling (`rework` directly at pre-implementation; unresolved drift gate at pre-completion, which routes to `rework` unless explicit force-completion override is used).
 - FR-DR-008: If merge conflicts occur, SpecForge shall generate conflict-resolution proposal.
 - FR-DR-009: Conflict-resolution proposal shall require user approval before application.
 - FR-DR-010: After approval, SpecForge shall apply the conflict resolution.
+
+## MVP CLI Contract Notes
+
+- Automated drift checkpoints run at:
+  - `specforge validate run` (pre-implementation)
+  - `specforge complete sync` (pre-completion)
+- If drift integration executes at either checkpoint, user confirmation is required by rerunning with `--approve-drift-analysis`.
+- `--main-branch <name>` is supported for both automated checkpoints and manual drift commands.
+- `--drift-strategy <merge-main|rebase-main>` is a shared runtime option (parsed by common command options) and is applied as a prompt-level rule override.
+- Manual conflict flow:
+  - `specforge drift merge-main` emits/returns conflict-resolution proposal when conflicts are detected.
+  - `specforge drift resolve --approved|--rejected` applies only after explicit approval; `--resolution-plan` is optional (auto-generated when omitted).

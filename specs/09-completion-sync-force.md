@@ -20,7 +20,7 @@ As a software engineer, I want all master updates applied atomically so no parti
 
 Acceptance Criteria:
 
-- Given approved preview, when sync runs successfully, then all listed updates are applied as one transaction.
+- Given final sync preview approval gate is satisfied, when sync runs successfully, then all listed updates are applied as one transaction.
 - Given sync fails technically, when execution stops, then no partial update is accepted and workflow stays in `ready_to_complete`.
 
 ### US-CS-03: Complete with explicit override when needed
@@ -34,8 +34,8 @@ Acceptance Criteria:
 
 ## Functional Requirements
 
-- FR-CS-001: Before sync, SpecForge shall generate final sync preview.
-- FR-CS-002: Sync preview shall include master docs to create/update, master feature specs to create/update, Root Master Spec index updates, Decision Log promotions, and history/audit persistence entries.
+- FR-CS-001: SpecForge shall provide a final sync preview command before sync (`complete preview`) for user/operator review.
+- FR-CS-002: Sync preview shall include master-doc update operations, feature-spec update operations (with missing documents created by doc-store behavior as needed), Root Master Spec index updates, Decision Log promotions, and history/audit persistence entries.
 - FR-CS-003: Final sync preview approval shall be a hard gate.
 - FR-CS-004: Completion/sync shall be atomic all-or-nothing.
 - FR-CS-005: On first sync, SpecForge shall create missing master docs and apply updates in one atomic operation.

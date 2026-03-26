@@ -1,0 +1,39 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "types": [
+      "node"
+    ],
+    "baseUrl": "../..",
+    "paths": {
+      "@specforge/contracts": [
+        "packages/contracts/dist/index.d.ts"
+      ],
+      "@specforge/application": [
+        "packages/application/dist/index.d.ts"
+      ],
+      "@specforge/adapters-audit-postgres": [
+        "packages/adapters-audit-postgres/dist/index.d.ts"
+      ],
+      "@specforge/adapters-docs-local-md": [
+        "packages/adapters-docs-local-md/dist/index.d.ts"
+      ],
+      "@specforge/adapters-git": [
+        "packages/adapters-git/dist/index.d.ts"
+      ],
+      "@specforge/adapters-system-assets": [
+        "packages/adapters-system-assets/dist/index.d.ts"
+      ]
+    },
+    "rootDir": "src",
+    "outDir": "dist",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "tsBuildInfoFile": "dist/.tsbuildinfo"
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}

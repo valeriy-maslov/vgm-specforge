@@ -37,7 +37,7 @@ No feature/refinement/refactor workflow may start before initialization is compl
 
 ## 3) Rule Sources and Precedence
 
-All three project sources are used:
+Rule-source model includes three project sources:
 
 - SpecForge Project Constitution
 - `AGENTS.md`
@@ -52,8 +52,13 @@ Precedence:
 
 Rule re-evaluation behavior:
 
-- AI re-evaluates applicable rules from these sources only at hard gates
-- AI logs which rules and sources were applied at those hard gates
+- AI re-evaluates applicable rules at hard gates and rule-aware drift checkpoints that can block/redirect workflow progression
+- AI logs which rules and sources were applied at hard-gate decisions; initialization bundled approval is recorded in initialization state metadata
+
+MVP runtime note:
+
+- Prompt-level rule sources are wired directly today.
+- Constitution/`AGENTS.md`/`README.md` precedence remains the governing model and is preserved for runtime source-loading extensions.
 
 ## 4) Initialization Workflow
 
@@ -110,7 +115,7 @@ Canonical master docs for synchronization:
 
 Section-ID requirement:
 
-- Stable unique section IDs are required across all master docs
+- Stable section IDs are required for master docs, with uniqueness guaranteed per document
 - Missing IDs must be auto-generated during initialization
 
 Creation timing:
@@ -366,7 +371,7 @@ Core workflow events to record (except where retention policy overrides on cance
 - `implementation_completed`
 - `validation_accepted`
 - `validation_changes_requested`
-- `completion_triggered`
+- `completion_triggered` (conditional: emitted when completion attempt is redirected away from final completion)
 - `sync_preview_generated`
 - `sync_preview_approved`
 - `master_docs_sync_started`
@@ -430,8 +435,8 @@ MVP per-run artifacts include:
 
 - Keep latest versions during active run
 - Rely on event/audit log for historical trace
-- After `workflow_completed`, remove per-run artifacts by default once history is preserved
-- User can explicitly request keeping artifacts
+- After `workflow_completed`, record completion-retention decision metadata with default non-retention policy
+- Explicit user-requested artifact retention is a post-MVP extension
 - After `workflow_cancelled`, keep only minimal cancellation metadata
 
 ## 13) Optional PR Step
@@ -451,12 +456,11 @@ MVP per-run artifacts include:
 
 ## 15) Final Source-of-Truth Principle
 
-SpecForge must keep the product source of truth consistent with code by synchronizing:
+SpecForge keeps the product source of truth consistent with code by synchronizing applicable docs for the current workflow type and detected impact:
 
 - Root Master Spec + indexed Master Feature Specs
-- Master Architecture Doc
-- Master Implementation Doc
 - Master Decision Log
 - Change History
+- Master Architecture Doc / Master Implementation Doc when required by workflow type and impact (default for `refactor`)
 
 This synchronization is atomic, user-controlled through hard gates, and fully auditable.

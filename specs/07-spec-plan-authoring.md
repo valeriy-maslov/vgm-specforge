@@ -11,7 +11,7 @@ As a software engineer, I want AI to draft a Work Spec from context and scope so
 
 Acceptance Criteria:
 
-- Given confirmed scope, when spec drafting starts, then AI generates a Work Spec.
+- Given confirmed scope, when spec drafting starts, then SpecForge enters spec drafting state and returns a Work Spec draft path contract.
 - Given draft spec, when I request adjustments, then AI updates spec and re-presents it.
 - Given final spec, when I approve it, then workflow can enter planning.
 
@@ -21,7 +21,7 @@ As a software engineer, I want AI to analyze code and constraints and produce an
 
 Acceptance Criteria:
 
-- Given approved spec, when plan drafting starts, then AI analyzes current codebase and requirements context.
+- Given approved spec, when plan drafting starts, then SpecForge enters plan drafting state and returns an Implementation Plan draft path contract.
 - Given draft plan, when I request adjustments, then AI updates plan and re-presents it.
 - Given final plan, when I approve it, then implementation can start.
 
@@ -31,19 +31,19 @@ As a software engineer, I want latest artifacts kept active while preserving his
 
 Acceptance Criteria:
 
-- Given repeated spec/plan edits, when updates are applied, then only latest active artifact is stored.
+- Given repeated spec/plan edits, when updates are applied, then latest draft state is represented by current workflow state and command outputs.
 - Given prior revisions, when audit is reviewed, then historical changes are recoverable through event logs.
 
 ## Functional Requirements
 
-- FR-SP-001: After scope confirmation, SpecForge shall generate a Work Spec artifact.
+- FR-SP-001: After scope confirmation, SpecForge shall generate Work Spec draft state and a Work Spec draft path contract.
 - FR-SP-002: Work Spec shall support feature, refinement, and refactor workflows.
 - FR-SP-003: For refactor workflows, Work Spec may be lightweight but remains mandatory.
 - FR-SP-004: SpecForge shall support iterative user-requested adjustments to Work Spec until approval.
 - FR-SP-005: Spec approval hard gate shall be required before plan drafting.
-- FR-SP-006: Plan generation shall analyze existing codebase plus user constraints and context sources.
+- FR-SP-006: Plan drafting in MVP shall use workflow context and user constraints; deeper codebase analysis integration is an extension point.
 - FR-SP-007: SpecForge shall support iterative user-requested adjustments to Implementation Plan until approval.
 - FR-SP-008: Plan approval hard gate shall be required before implementation starts.
-- FR-SP-009: Active storage shall keep latest Work Spec and latest Implementation Plan versions.
+- FR-SP-009: MVP draft commands shall return latest Work Spec and Implementation Plan path contracts in command output; persistent draft artifact state/metadata is an extension point.
 - FR-SP-010: Historical revisions shall be preserved through event/audit logs rather than persistent multi-version artifact files.
 - FR-SP-011: Approvals shall not be auto-invalidated after edits unless user explicitly requests re-approval.

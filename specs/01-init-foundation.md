@@ -12,7 +12,7 @@ As a software engineer starting a new codebase, I want SpecForge to bootstrap re
 Acceptance Criteria:
 
 - Given a new project context, when I run initialization, then SpecForge creates `README.md`, `AGENTS.md`, Project Constitution, and Root Master Spec.
-- Given initialization output, when I request changes, then AI updates artifacts and re-submits the full bundle.
+- Given initialization output, when I request changes, then I can rerun initialization to refresh reconciliation output and create any missing required artifacts.
 - Given the bundle is approved, when initialization finishes, then project status is marked initialized.
 
 ### US-IF-02: Initialize an existing codebase
@@ -43,7 +43,7 @@ Acceptance Criteria:
 - FR-IF-005: For existing codebase mode, when scan results conflict with documentation, SpecForge shall generate a baseline reconciliation report.
 - FR-IF-006: Initialization completion for existing codebase mode shall require explicit user approval of reconciliation report when produced.
 - FR-IF-007: Initialization approval shall be a single bundled approval over initialization artifacts.
-- FR-IF-008: If user requests initialization changes, SpecForge shall iterate in a revise-and-resubmit loop until bundled approval is granted.
+- FR-IF-008: If user requests initialization changes, SpecForge shall support rerun-based revise/resubmit by regenerating initialization output and creating missing required artifacts (MVP does not overwrite existing artifacts automatically).
 - FR-IF-009: SpecForge shall mark initialization as complete only after bundled approval is granted.
 - FR-IF-010: SpecForge shall block all feature/refinement/refactor workflow starts until initialization is complete.
 - FR-IF-011: SpecForge shall persist initialization outcome metadata including mode, approval timestamp, and generated artifact list.

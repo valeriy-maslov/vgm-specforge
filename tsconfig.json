@@ -1,0 +1,29 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/contracts"
+    },
+    {
+      "path": "./packages/domain/tsconfig.build.json"
+    },
+    {
+      "path": "./packages/application/tsconfig.build.json"
+    },
+    {
+      "path": "./packages/adapters-git/tsconfig.build.json"
+    },
+    {
+      "path": "./packages/adapters-docs-local-md/tsconfig.build.json"
+    },
+    {
+      "path": "./packages/adapters-audit-postgres/tsconfig.build.json"
+    },
+    {
+      "path": "./packages/adapters-system-assets/tsconfig.build.json"
+    },
+    {
+      "path": "./packages/cli/tsconfig.build.json"
+    }
+  ]
+}

@@ -31,7 +31,7 @@ Acceptance Criteria:
 
 - Given generated branch naming, when no override exists, then naming follows `sf/<work-type>/<short-slug>`.
 - Given duplicate generated name, when new branch is generated, then autoincrement suffix is appended.
-- Given naming rules in prompt or project docs, when present, then precedence rules apply.
+- Given explicit branch override input, when provided, then SpecForge uses that branch name instead of generated naming.
 
 ## Functional Requirements
 
@@ -41,7 +41,7 @@ Acceptance Criteria:
 - FR-BI-004: Workflow historical uniqueness shall be represented by `(branch_name + timestamp)`.
 - FR-BI-005: Default generated branch naming shall be `sf/<work-type>/<short-slug>`.
 - FR-BI-006: If generated branch name collides, SpecForge shall append autoincrement suffix `-2`, `-3`, and so on.
-- FR-BI-007: Branch naming convention shall be overridable by prompt and project rule sources under global precedence.
+- FR-BI-007: Branch naming shall be overridable in MVP through explicit branch input (`workflow start --branch`); rule-source-driven naming overrides remain an extension point under global precedence.
 - FR-BI-008: SpecForge shall allow only one active workflow per branch.
 - FR-BI-009: If start is attempted on branch with active workflow, SpecForge shall ignore the attempt and show a user-facing message.
 - FR-BI-010: SpecForge shall allow parallel active workflows across different branches.

@@ -11,7 +11,7 @@ As a software engineer, I want deterministic rule precedence so AI behavior is c
 
 Acceptance Criteria:
 
-- Given conflicting rules across prompt, Constitution, `AGENTS.md`, and `README.md`, when a hard gate is evaluated, then higher-precedence rule wins.
+- Given conflicting rules across prompt and any loaded lower-precedence sources (Constitution, `AGENTS.md`, `README.md`), when a hard gate is evaluated, then higher-precedence rule wins.
 - Given a hard gate decision, when recorded, then applied rule sources are logged.
 
 ### US-RG-02: Keep hard-gate approvals under user control
@@ -34,9 +34,9 @@ Acceptance Criteria:
 
 ## Functional Requirements
 
-- FR-RG-001: Rule precedence shall be `user prompt > Project Constitution > AGENTS.md > README.md`.
-- FR-RG-002: Rule resolution shall execute at hard gates only.
-- FR-RG-003: SpecForge shall log which sources and rules were applied at each hard gate.
+- FR-RG-001: Rule precedence model shall be `user prompt > Project Constitution > AGENTS.md > README.md` across loaded sources.
+- FR-RG-002: Rule resolution shall execute at hard gates and any rule-aware checkpoint automation that can block or redirect workflow progression (for MVP: pre-implementation and pre-completion drift checkpoints).
+- FR-RG-003: SpecForge shall log which sources and rules were applied at each hard gate where rule evaluation runs; initialization bundled approval is recorded via initialization state metadata.
 - FR-RG-004: Hard gates shall be exactly: initialization bundled approval, spec approval, plan approval, validation decision, and final sync preview approval.
 - FR-RG-005: SpecForge shall require explicit user approval to pass each hard gate by default.
 - FR-RG-006: SpecForge shall not auto-advance hard gates unless user explicitly requests alternate behavior.

@@ -38,3 +38,17 @@ Acceptance Criteria:
 - FR-PR-003: PR creation request shall be treated as optional extension step and not as mandatory completion criterion.
 - FR-PR-004: If requested PR creation fails, SpecForge shall not block `workflow_completed` state.
 - FR-PR-005: If requested PR creation fails, SpecForge shall present failure message to user.
+
+## MVP CLI Contract Notes
+
+- PR creation is requested only through completion sync:
+  - `specforge complete sync --request-pr`
+  - Optional fields: `--pr-title`, `--pr-body` (valid only when `--request-pr` is present)
+- If PR creation is requested and succeeds, completion output includes:
+  - `pullRequest.requested: true`
+  - `pullRequest.created: true`
+  - `pullRequest.url`
+- If PR creation is requested and fails, completion still proceeds and output includes:
+  - `pullRequest.requested: true`
+  - `pullRequest.created: false`
+  - failure message in `pullRequest.message` and/or `result.message`

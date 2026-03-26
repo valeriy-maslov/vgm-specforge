@@ -1,6 +1,6 @@
 # SpecForge MVP Implementation Plan
 
-Status: planned
+Status: in-progress (M6 release readiness; final reviewer closure pending)
 
 This plan is implementation-ready and optimized for parallel AI-assisted delivery.
 
@@ -13,7 +13,7 @@ References:
 
 ## 1) Delivery Goals
 
-- Build an npm-installable Node.js CLI (`specforge`) using TypeScript.
+- Build a TypeScript Node.js CLI (`specforge`) with workspace packaging validated via tarball install smoke tests and a clear npm-release path.
 - Implement the MVP workflow engine and hard-gate model.
 - Ship PostgreSQL audit logging via driver interface.
 - Ship local markdown master-doc storage with atomic sync semantics.
@@ -32,7 +32,7 @@ References:
 - One active workflow per branch.
 - Workflow run identity is `(branch_name + started_at)`.
 - Hard gates require explicit approval by default.
-- Rule precedence is `prompt > constitution > AGENTS.md > README.md`.
+- Rule precedence model is `prompt > constitution > AGENTS.md > README.md` across loaded rule sources.
 - Sync is atomic all-or-nothing.
 - Force completion requires explicit command and justification.
 - Cancellation is terminal with minimal metadata retention.

@@ -16,7 +16,7 @@ Software engineers and engineering teams using AI agents to deliver production s
 
 - OpenCode
 - Codex
-- Claude
+- Claude Code
 
 ## Core Philosophy
 
@@ -49,13 +49,33 @@ SpecForge closes this gap by making the spec workflow a first-class part of engi
 
 ## Current Status
 
-SpecForge is currently in MVP definition stage.
+SpecForge has implemented the MVP workflow and is in release-readiness validation.
 
-Initial focus:
+Current focus:
 
-- Core spec workflow
-- Agent integration patterns for OpenCode, Codex, and Claude
-- Foundations for change tracking and decision documentation
+- Final packaging and install smoke checks
+- Final reviewer gate pass (architecture, requirements, security, tests, CLI, docs)
+- Release notes and publish checklist completion
+
+## Runtime Prerequisite (MVP)
+
+- Runtime workflow commands require `.specforge/config.yaml`.
+- The file currently stores JSON content at the `.yaml` path.
+- `audit` config is required (`driver: memory` or `driver: postgres`).
+
+Minimal local config example:
+
+```json
+{
+  "audit": {
+    "driver": "memory"
+  },
+  "docsStore": {
+    "provider": "local-md",
+    "rootDir": "."
+  }
+}
+```
 
 ## Architecture and Planning Docs
 
@@ -65,9 +85,22 @@ Initial focus:
 - `SPECFORGE_MVP_EVENT_STORMING.md` - event-storming decisions and workflow rules
 - `specs/index.md` - ordered implementation specs
 
+## Contributor Execution Notes
+
+- Use `IMPLEMENTATION_PLAN.md` as the primary task backlog and milestone gate.
+- Follow dependency direction from `IMPLEMENTATION_ARCHITECTURE_SPEC.md` (`cli -> application -> domain -> contracts`, adapters via ports).
+- Implement in milestone order (`M0` to `M6`) and do not skip required reviewer gates.
+- Run standard verification before sharing changes:
+  - `pnpm lint`
+  - `pnpm typecheck`
+  - `pnpm test`
+  - `pnpm build`
+- For CLI scenario work, also run:
+  - `pnpm --filter @specforge/cli test:e2e`
+
 Local agent guidance:
 
-- `AGENTS.md` is used as a local working guide and is currently gitignored by design.
+- `AGENTS.md` is used as the local working guide for coding agents.
 
 ## Contributing
 

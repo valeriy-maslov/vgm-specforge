@@ -14,7 +14,7 @@ It is aligned with `ARCHITECTURE.md`, `SPECFORGE_MVP_EVENT_STORMING.md`, and `sp
 
 MVP scope in this blueprint:
 
-- npm-installable Node.js CLI (`specforge`)
+- workspace-packable Node.js CLI (`specforge`) with release-path compatibility for npm publish
 - unified workflow engine (`feature`, `refinement`, `refactor`)
 - hard-gate control model
 - PostgreSQL audit driver
@@ -29,8 +29,6 @@ MVP scope in this blueprint:
   package.json
   pnpm-workspace.yaml
   tsconfig.base.json
-  .eslintrc.cjs
-  .prettierrc
   packages/
     contracts/
       src/
@@ -85,9 +83,9 @@ MVP scope in this blueprint:
       src/
         index.ts
         pg-audit-driver.ts
-        migrations/
-          001_init.sql
-          002_indexes.sql
+      migrations/
+        001_init.sql
+        002_indexes.sql
     adapters-docs-local-md/
       src/
         index.ts
@@ -98,6 +96,7 @@ MVP scope in this blueprint:
       src/
         index.ts
         asset-manifest.ts
+        managed-system-assets-adapter.ts
         asset-updater.ts
         checksum.ts
     cli/
@@ -218,9 +217,25 @@ export interface GitPort {
   currentBranch(): Promise<string>;
   branchExists(name: string): Promise<boolean>;
   createBranch(name: string): Promise<void>;
-  mergeMainIntoCurrent(mainBranch: string): Promise<MergeResult>;
+  mergeMainIntoCurrent(mainBranch: string, strategy?: "merge-main" | "rebase-main"): Promise<MergeResult>;
   isMainDrifted(mainBranch: string): Promise<boolean>;
+  listDriftPaths(mainBranch: string): Promise<string[]>;
   headSha(branch: string): Promise<string>;
+  detectConflictFiles(): Promise<string[]>;
+  markConflictFilesResolved(files: readonly string[]): Promise<void>;
+  continueMerge(message?: string): Promise<void>;
+  abortMerge(): Promise<void>;
+}
+
+export interface PullRequestPort {
+  create(input: {
+    branchName: string;
+    title: string;
+    body?: string;
+  }): Promise<{
+    url: string;
+    number?: number;
+  }>;
 }
 ```
 
@@ -279,8 +294,8 @@ export interface CommandContext {
 
 export interface WorkflowService {
   start(input: StartWorkflowInput, ctx: CommandContext): Promise<StartWorkflowOutput>;
-  status(input: StatusInput, ctx: CommandContext): Promise<StatusOutput>;
-  cancel(input: CancelInput, ctx: CommandContext): Promise<CancelOutput>;
+  status(input: WorkflowStatusInput, ctx: CommandContext): Promise<WorkflowStatusOutput>;
+  cancel(input: WorkflowCancelInput, ctx: CommandContext): Promise<WorkflowCancelOutput>;
 }
 
 export interface ScopeService {
@@ -289,12 +304,23 @@ export interface ScopeService {
 }
 
 export interface CompletionService {
-  preview(input: CompletionPreviewInput, ctx: CommandContext): Promise<SyncPreviewOutput>;
-  approve(input: CompletionApproveInput, ctx: CommandContext): Promise<GateOutput>;
-  sync(input: CompletionSyncInput, ctx: CommandContext): Promise<SyncOutput>;
-  force(input: ForceCompletionInput, ctx: CommandContext): Promise<ForceOutput>;
+  preview(input: CompletionPreviewInput, ctx: CommandContext): Promise<CompletionPreviewOutput>;
+  approve(input: CompletionApproveInput, ctx: CommandContext): Promise<CompletionApproveOutput>;
+  sync(input: CompletionSyncInput, ctx: CommandContext): Promise<CompletionSyncOutput>;
+  force(input: ForceCompletionInput, ctx: CommandContext): Promise<ForceCompletionOutput>;
 }
 ```
+
+`ValidationRunInput` and `CompletionSyncInput` both support checkpoint drift options:
+
+- `mainBranch?: string` (default `main`)
+- `approveDriftAnalysis?: boolean` (required when automated drift integration runs)
+
+`CompletionSyncInput` additionally supports optional PR request fields:
+
+- `requestPullRequest?: boolean`
+- `pullRequestTitle?: string`
+- `pullRequestBody?: string`
 
 Application services orchestrate:
 
@@ -315,6 +341,9 @@ create table if not exists sf_workflow_runs (
   state text not null,
   title text not null,
   affected_section_ids jsonb not null default '[]'::jsonb,
+  unresolved_failed_gates jsonb not null default '[]'::jsonb,
+  force_completion_requested boolean not null default false,
+  metadata jsonb,
   created_at timestamptz not null,
   updated_at timestamptz not null,
   cancelled_at timestamptz,
@@ -377,33 +406,61 @@ Each command handler follows the same shape:
 3. invoke one application service method
 4. format output (`human` or `json`)
 
+Shared runtime options are parsed by `packages/cli/src/commands/shared.ts` and include:
+
+- `--project-root`
+- `--actor-kind`
+- `--actor-id`
+- `--drift-strategy <merge-main|rebase-main>` (mapped into prompt rule source for precedence evaluation)
+
+Runtime configuration prerequisites:
+
+- `.specforge/config.yaml` is required for workflow/runtime commands and stores JSON content in MVP.
+- `config.audit` is required.
+- Supported audit drivers: `postgres` and `memory`.
+- For `postgres`, `config.audit.connectionString` is required.
+
+Minimal local/runtime config example:
+
+```json
+{
+  "audit": {
+    "driver": "memory"
+  },
+  "docsStore": {
+    "provider": "local-md",
+    "rootDir": "."
+  }
+}
+```
+
 ## 6) Command-by-Command Responsibility Matrix
 
 | CLI command | Application entrypoint | Domain responsibilities | Adapter calls | Main side effects |
 | --- | --- | --- | --- | --- |
-| `specforge init --mode new` | `InitService.initializeNew` | init policy, bundled approval requirement | docs-local-md, system-assets, audit | creates foundation artifacts; writes init events |
-| `specforge init --mode existing` | `InitService.initializeExisting` | reconciliation requirement, bundled approval requirement | docs-local-md, git (scan), audit | reconciliation report + init artifacts |
-| `specforge system update` | `SystemService.updateManagedAssets` | managed-file policy | system-assets | updates `.specforge/system/*` via manifest/checksum |
+| `specforge init --mode new` | `InitService.initialize` | init policy, bundled approval requirement | local init workspace, initialization store | creates foundation artifacts and persists initialization state |
+| `specforge init --mode existing` | `InitService.initialize` | reconciliation requirement, bundled approval requirement | local init workspace (scan + reconciliation report), initialization store | produces reconciliation report and persists initialization state |
+| `specforge system update --assets-dir <path> [--manifest-path <path>] [--system-dir <path>] [--dry-run]` | `SystemService.updateManagedAssets` | managed-file policy | system-assets | updates `.specforge/system/*` via manifest/checksum from the provided assets bundle |
 | `specforge config get` | `ConfigService.get` | none | filesystem/config | reads `.specforge/config.yaml` |
-| `specforge config set` | `ConfigService.set` | config validation | filesystem/config, audit | writes config, emits config-updated event |
+| `specforge config set` | `ConfigService.set` | config validation | filesystem/config | writes config |
 | `specforge workflow start` | `WorkflowService.start` | infer work type, branch naming policy, one-active-workflow-per-branch | git, audit | creates branch, creates workflow run |
 | `specforge workflow status` | `WorkflowService.status` | none | audit | returns current run/state summary |
 | `specforge workflow cancel` | `WorkflowService.cancel` | terminal cancellation rules, retention rules | git, audit | marks run cancelled, stores minimal cancellation metadata |
-| `specforge scope analyze` | `ScopeService.analyze` | scope proposal rules (strict IDs + free text) | docs-local-md, audit | emits `scope_proposed` |
+| `specforge scope analyze` | `ScopeService.analyze` | scope proposal rules (strict IDs + free text) | audit | emits `scope_proposed` |
 | `specforge scope confirm` | `ScopeService.confirm` | soft checkpoint transition to `scope_confirmed` | audit | updates run scope + emits `scope_confirmed` |
-| `specforge spec draft` | `SpecService.draft` | state guard to drafting stage | docs-local-md, audit | stores latest Work Spec, emits `spec_generated` |
+| `specforge spec draft` | `SpecService.draft` | state guard to drafting stage | audit | returns draft path contract and emits `spec_generated` |
 | `specforge spec approve` | `SpecService.approve` | hard-gate check + rule evaluation | audit | transitions to `spec_approved`, emits gate decision |
-| `specforge plan draft` | `PlanService.draft` | state guard + plan loop policy | git (code context), audit | stores latest plan, emits `plan_generated` |
+| `specforge plan draft` | `PlanService.draft` | state guard + plan loop policy | audit | returns draft path contract and emits `plan_generated` |
 | `specforge plan approve` | `PlanService.approve` | hard-gate check + rule evaluation | audit | transitions to `plan_approved` |
-| `specforge validate run` | `ValidationService.run` | validation-rule resolution | audit, runner adapter (future) | executes configured checks, writes results |
+| `specforge validate run --approve-drift-analysis?` | `ValidationService.run` | pre-implementation drift check/integration + impact analysis confirmation + validation-rule resolution | git, audit, runner adapter (future) | may require drift confirmation, may transition to `rework`, writes validation results |
 | `specforge validate decide --accepted/--changes-requested` | `ValidationService.decide` | hard-gate transition + rework policy | audit | enters `rework` or proceeds |
 | `specforge complete preview` | `CompletionService.preview` | completion preconditions | docs-local-md, audit | outputs sync preview model |
 | `specforge complete approve` | `CompletionService.approve` | hard-gate approval with resolved rules | audit | records `sync_preview_approved` |
-| `specforge complete sync` | `CompletionService.sync` | atomic sync policy | docs-local-md, audit | applies all-or-nothing sync; may set `completed` |
+| `specforge complete sync --approve-drift-analysis? --request-pr?` | `CompletionService.sync` | pre-completion drift check/integration + impact analysis confirmation + atomic sync policy + optional PR extension | git, docs-local-md, audit, optional PR port | may require drift confirmation, applies all-or-nothing sync, and may attempt non-blocking PR creation |
 | `specforge complete force --reason ...` | `CompletionService.force` | force-completion policy/required fields | audit | records override context for final sync |
 | `specforge drift check` | `DriftService.check` | drift-check policy (before impl/complete) | git, audit | emits `drift_detected` when applicable |
-| `specforge drift merge-main` | `DriftService.mergeMain` | default strategy + override policy | git, audit | merges `main` into run branch |
-| `specforge drift resolve` | `DriftService.resolveConflicts` | proposal approval required before apply | git, audit | applies approved conflict resolution |
+| `specforge drift merge-main` | `DriftService.mergeMain` | default strategy + override policy + conflict proposal generation | git, audit | integrates `main` into run branch and returns proposal when conflicts occur |
+| `specforge drift resolve` | `DriftService.resolveConflicts` | proposal approval required before apply | git, audit | applies approved conflict resolution (auto-generated plan when none supplied) |
 | `specforge audit query` | `AuditService.query` | none | audit driver | returns filtered event/run history |
 
 ## 7) Command Output Contracts
@@ -427,15 +484,14 @@ Generated/managed structure in user repository:
 
 ```text
 .specforge/
-  config.yaml
+  config.yaml   # JSON content persisted at .yaml path for MVP compatibility
   system/
     prompts/
     skills/
     command-contracts/
     manifest.json
   state/
-    runtime.json
-    locks.json   # optional local process locks only
+    runs/        # logical run artifact path contracts returned by draft services
 ```
 
 Project docs (source-of-truth model):
@@ -469,7 +525,7 @@ Project docs (source-of-truth model):
 - One active workflow per branch.
 - Branch identity is workflow identity (`branch + timestamp` unique run key).
 - Hard gates require explicit approval by default.
-- Rule precedence is always `prompt > constitution > AGENTS.md > README.md`.
+- Rule precedence for loaded sources is `prompt > constitution > AGENTS.md > README.md`.
 - Sync is atomic all-or-nothing.
 - Force completion is explicit and fully justified.
 - Cancellation is terminal and keeps minimal metadata only.

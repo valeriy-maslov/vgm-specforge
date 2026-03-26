@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2022"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "useUnknownInCatchVariables": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "@specforge/contracts": ["packages/contracts/src/index.ts"],
+      "@specforge/domain": ["packages/domain/src/index.ts"],
+      "@specforge/application": ["packages/application/src/index.ts"],
+      "@specforge/adapters-git": ["packages/adapters-git/src/index.ts"],
+      "@specforge/adapters-docs-local-md": ["packages/adapters-docs-local-md/src/index.ts"],
+      "@specforge/adapters-audit-postgres": ["packages/adapters-audit-postgres/src/index.ts"],
+      "@specforge/adapters-system-assets": ["packages/adapters-system-assets/src/index.ts"],
+      "@specforge/cli": ["packages/cli/src/index.ts"]
+    },
+    "types": ["node"]
+  }
+}

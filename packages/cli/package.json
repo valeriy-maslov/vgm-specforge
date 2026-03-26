@@ -1,0 +1,43 @@
+{
+  "name": "@specforge/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "specforge": "dist/bin/specforge.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "tsc -p tsconfig.json",
+    "test": "vitest run --config vitest.config.ts",
+    "test:e2e": "vitest run --config vitest.config.ts test/e2e"
+  },
+  "dependencies": {
+    "@specforge/adapters-audit-postgres": "workspace:*",
+    "@specforge/adapters-docs-local-md": "workspace:*",
+    "@specforge/adapters-git": "workspace:*",
+    "@specforge/application": "workspace:*",
+    "@specforge/contracts": "workspace:*",
+    "@specforge/adapters-system-assets": "workspace:*"
+  },
+  "description": "",
+  "directories": {
+    "test": "test"
+  },
+  "devDependencies": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

@@ -14,9 +14,9 @@ Supported agents for MVP:
 
 ## 2. Architectural Drivers
 
-- Installable with `npm` as a Node.js application.
+- Packaged as a Node.js CLI with workspace tarball install validation in MVP; structured for npm release.
 - Operates as a CLI control plane for users and AI-agent-invoked commands.
-- Enforces workflow rules from project files with precedence:
+- Enforces workflow rules using precedence when sources are available:
   - user prompt > Project Constitution > `AGENTS.md` > `README.md`
 - Maintains source-of-truth master documentation synchronized with code.
 - Persists auditable history through a pluggable audit-log driver.
@@ -98,7 +98,7 @@ Responsibilities:
 
 ## 6. Packaging and Installation
 
-- Distributed as an npm package exposing `specforge` executable.
+- MVP uses private workspace packages and validates installability via packed tarballs exposing `specforge`.
 - Runtime: Node.js LTS.
 - Configurable via project-level config file and CLI commands.
 
@@ -107,14 +107,13 @@ Recommended package structure:
 ```text
 packages/
   cli/
-  core/
-  app/
-  adapters/
-    git/
-    audit-postgres/
-    docs-local-md/
-  plugins/
-    interfaces/
+  contracts/
+  domain/
+  application/
+  adapters-git/
+  adapters-audit-postgres/
+  adapters-docs-local-md/
+  adapters-system-assets/
 ```
 
 ## 7. Project Files and Managed Assets
@@ -135,12 +134,14 @@ packages/
 
 ```text
 .specforge/
-  config.yaml
+  config.yaml    # JSON content in MVP
   system/        # non-editable managed assets: prompts, skills, manifests
   state/         # runtime metadata/checkpoints
 ```
 
-`specforge system update` updates files in `.specforge/system/` using versioned manifests and checksums.
+Runtime note: workflow/runtime commands require `config.audit` to be present in `.specforge/config.yaml`.
+
+`specforge system update --assets-dir <path> [--manifest-path <path>] [--system-dir <path>]` updates files in `.specforge/system/` using versioned manifests and checksums from the provided bundle.
 
 ## 8. AI Agent Integration Model
 
@@ -183,14 +184,16 @@ Control model:
 
 ## 10. Rule Resolution Architecture
 
-Rule resolution occurs at hard gates only.
+Rule resolution occurs at hard gates and rule-aware automation checkpoints that can block or redirect workflow progression.
 
 Inputs:
 
 - User instruction/prompt context
-- Project Constitution
-- `AGENTS.md`
-- `README.md`
+- Project Constitution (when loaded by runtime integration)
+- `AGENTS.md` (when loaded by runtime integration)
+- `README.md` (when loaded by runtime integration)
+
+MVP runtime currently wires prompt-level rule sources directly (for example CLI `--drift-strategy`) and keeps lower-precedence document source loading as an extension point.
 
 Resolver responsibilities:
 
@@ -200,7 +203,7 @@ Resolver responsibilities:
 
 ## 11. Master Document Sync Architecture
 
-Two-step completion model:
+Typical two-step completion model:
 
 1. Generate sync preview.
 2. Apply atomic sync after user approval.
@@ -245,6 +248,8 @@ export interface AuditDriver {
   connect(config: unknown): Promise<void>;
   append(event: AuditEvent): Promise<void>;
   query(filter: AuditQuery): Promise<AuditEvent[]>;
+  getRun(run: WorkflowRunKey): Promise<WorkflowRun | null>;
+  saveRun(run: WorkflowRun): Promise<void>;
   close(): Promise<void>;
 }
 ```
@@ -288,7 +293,7 @@ Data handling rules:
 
 - Mask secrets before persisting prompt/action logs.
 - Keep cancellation retention minimal as defined by product specs.
-- Remove per-run artifacts after completion by default once history is preserved.
+- Record completion retention decisions in run metadata; persistent per-run artifact cleanup is an extension when artifact files are explicitly managed.
 
 ## 15. CLI Command Surface (MVP)
 

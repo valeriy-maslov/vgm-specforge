@@ -1,2 +1,8 @@
 # Local agent guidance (not tracked for now)
 AGENTS.md
+
+# Node / TypeScript workspace outputs
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo

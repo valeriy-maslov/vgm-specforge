@@ -20,7 +20,7 @@ As a software engineer, I want stable section IDs so AI can target exact section
 
 Acceptance Criteria:
 
-- Given any master document section, when referenced by workflows, then it has a stable unique section ID.
+- Given any master document section, when referenced by workflows, then it has a stable section ID that is unique within that document.
 - Given missing IDs during initialization, when initialization completes, then missing IDs are auto-generated.
 
 ### US-DM-03: Bootstrap missing master docs on first sync
@@ -38,7 +38,7 @@ Acceptance Criteria:
 - FR-DM-002: Root Master Spec shall include an index of master feature specs.
 - FR-DM-003: SpecForge shall support master feature specs as multiple separate files.
 - FR-DM-004: Canonical master docs shall include Root Master Spec, Master Feature Specs, Master Architecture Doc, Master Implementation Doc, Master Decision Log, and Change History.
-- FR-DM-005: Stable unique section IDs shall be required across all master docs.
+- FR-DM-005: Stable section IDs shall be required for master docs, with uniqueness guaranteed per document.
 - FR-DM-006: During initialization, SpecForge shall auto-generate missing section IDs in master docs.
 - FR-DM-007: Initialization shall require only Root Master Spec as mandatory master artifact.
 - FR-DM-008: Other canonical master docs shall be created when first required during completion/sync.
